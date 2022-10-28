@@ -28,7 +28,9 @@ func Draw(viewport *ebiten.Image, frame *ebiten.Image) {
 	sf := wf
 	if hf < wf { sf = hf }
 	if sf == 1.0 {
-		opts.GeoM.Translate(tx, ty)
+		offx := (float64(vwWidth ) - float64(frWidth ))/2
+		offy := (float64(vwHeight) - float64(frHeight))/2
+		opts.GeoM.Translate(tx + offx, ty + offy)
 	} else {
 		sfrWidth  := float64(frWidth )*sf
 		sfrHeight := float64(frHeight)*sf
