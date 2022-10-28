@@ -1,4 +1,5 @@
 # mpegg
+[![Go Reference](https://pkg.go.dev/badge/github.com/tinne26/mpegg.svg)](https://pkg.go.dev/github.com/tinne26/mpegg)
 
 **NOTICE: work in progress, I'll improve it in the next days. only videos with audio work**
 
@@ -48,7 +49,7 @@ The `mpegg.Player` also provides easy access to the main mpeg properties and a f
 - `Player.MPEG() (*mpeg.MPEG, *sync.Mutex)` to access the underlying mpeg.
 - `Player.() (*mpeg.MPEG, *sync.Mutex)` to access the underlying mpeg.
 
-Check the [package's documentation]() to explore these and a few more.
+Check the [package's documentation](https://pkg.go.dev/github.com/tinne26/mpegg) to explore these and a few more.
 
 ## Limitations
 
