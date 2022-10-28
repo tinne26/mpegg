@@ -45,15 +45,15 @@ func main() {
 
 The `mpegg.Player` also provides easy access to the main mpeg properties and a few control functions:
 - `Player.Play()`, `Player.Pause()` and `Player.IsPlaying()` to play or pause the video.
-- `Player.Seek(time.Duration)`, and `Player.Position() time.Duration` to control the playback position.
+- `Player.SeekFast(time.Duration)`, and `Player.Position() time.Duration` to control the playback position.
 - `Player.MPEG() (*mpeg.MPEG, *sync.Mutex)` to access the underlying mpeg.
-- `Player.() (*mpeg.MPEG, *sync.Mutex)` to access the underlying mpeg.
 
 Check the [package's documentation](https://pkg.go.dev/github.com/tinne26/mpegg) to explore these and a few more.
 
 ## Limitations
 
 TODO: write about biggest sizes and framerates viable even for low-end laptop CPUs.
+
 TODO: write about audio and video sync limitations on Ebitengine being ~10ms coarse.
 
 ## ffmpeg cheatsheet
