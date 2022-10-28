@@ -75,19 +75,19 @@ Set **quality** level explicitly (`-q`, lower is better, I find 4 good, 6 kinda 
 ffmpeg -i my_video.mp4 -c:v mpeg1video -c:a mp2 -f mpeg -q 6 my_video.mpg
 ```
 
-Set **framerate** explicitly (`-filter:v fps=VALUE`, but going below 24 is almost never a good idea).
+Set **framerate** explicitly (`-r 30` or `-filter:v fps=VALUE` (don't go below 24!)).
 ```
 ffmpeg -i my_video.mp4 -c:v mpeg1video -c:a mp2 -f mpeg -r 24 my_video.mpg
 ```
 
-Change the video **resolution** while converting (`-s WIDTHxHEIGHT`, where "s" stands for "size"):
+Change the video **resolution** while converting (`-s 640x480`, where "s" stands for "size"):
 ```
 ffmpeg -i my_video.mp4 -c:v mpeg1video -c:a mp2 -f mpeg -s 640x480 my_video.mpg
 ```
 
 Keep only video, **remove audio** (`-an`):
 ```
-ffmpeg -i my_video.mp4 -c:v mpeg1video -c:a mp2 -f mpeg -q 6 my_video.mpg
+ffmpeg -i my_video.mp4 -c:v mpeg1video -an -f mpeg my_video.mpg
 ```
 
 Two-pass encoding (can reduce artifacts, improving quality; `-b:v 1600k` is close to `-q 8`, `-b:v 2700k` is close to `-q 4`):
