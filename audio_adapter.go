@@ -46,10 +46,6 @@ func newAudioAdapter(mpg *mpeg.MPEG) (*audioAdapter, error) {
 	return adapter, nil
 }
 
-func (self *audioAdapter) MPEG() (*mpeg.MPEG, *sync.Mutex) {
-	return self.mpg, &self.mutex
-}
-
 func (self *audioAdapter) Read(buffer []byte) (int, error) {
 	// helper function
 	var eof = func(ended bool) error { if ended { return io.EOF } else { return nil } }
@@ -62,7 +58,6 @@ func (self *audioAdapter) Read(buffer []byte) (int, error) {
 	var servedBytes int = 0
 	audio := self.mpg.Audio()
 	if len(buffer) == 0 { return 0, eof(audio.HasEnded()) }
-	if audio.HasEnded() { return servedBytes, io.EOF }
 	
 	// if we had leftover bytes from the previous read, use that
 	if len(self.leftovers) > 0 {
@@ -75,31 +70,40 @@ func (self *audioAdapter) Read(buffer []byte) (int, error) {
 			copy(self.leftovers, self.leftovers[copiedBytes : ])
 		}
 	}
+	
+	// stop if audio has already ended
+	if audio.HasEnded() { return servedBytes, io.EOF }
 
 	// decode audio and move it into the buffer
 	for len(buffer) > 0 {
 		// decode some samples
 		samples := audio.Decode()
-		if len(samples.S16) == 0 { return servedBytes, eof(audio.HasEnded()) }
-
+		
 		// cast the samples int16 slice to a byte slice
 		ptr := (*byte)(unsafe.Pointer(&samples.S16[0]))
 		length := len(samples.S16)*2
 		samplesAsBytes := unsafe.Slice(ptr, length)
-
+		
 		// copy into the output buffer
 		copiedBytes := copy(buffer, samplesAsBytes)
 		servedBytes += copiedBytes
 		buffer = buffer[copiedBytes : ]
-
+		
 		// if some samples were left over, store them
 		if copiedBytes < len(samplesAsBytes) {
 			self.leftovers = append(self.leftovers, samplesAsBytes[copiedBytes : ]...)
 			return servedBytes, eof(audio.HasEnded())
 		}
+
+		// if audio has ended, don't try to continue
+		if audio.HasEnded() { return servedBytes, io.EOF }
 	}
 
 	return servedBytes, eof(audio.HasEnded())
+}
+
+func (self *audioAdapter) MPEG() (*mpeg.MPEG, *sync.Mutex) {
+	return self.mpg, &self.mutex
 }
 
 func (self *audioAdapter) Play() {
@@ -109,17 +113,21 @@ func (self *audioAdapter) Play() {
 	self.mutex.Unlock()
 	self.audioPlayer.Play()
 }
+
 func (self *audioAdapter) IsPlaying() bool {
 	return self.audioPlayer.IsPlaying()
 }
+
 func (self *audioAdapter) Pause() {
 	self.audioPlayer.Pause()
 }
+
 func (self *audioAdapter) Rewind() {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 	self.mpg.Rewind()
 }
+
 func (self *audioAdapter) SeekFrame(t time.Duration, b bool) *mpeg.Frame {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
@@ -129,6 +137,7 @@ func (self *audioAdapter) SeekFrame(t time.Duration, b bool) *mpeg.Frame {
 	}
 	return frame
 }
+
 func (self *audioAdapter) Position() time.Duration {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
