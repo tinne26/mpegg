@@ -16,8 +16,3 @@ type mpegController interface {
 	Position() time.Duration
 	MPEG() (*mpeg.MPEG, *sync.Mutex)
 }
-
-// TODO: this is actually the easy part
-type videoOnlyController struct {
-
-}

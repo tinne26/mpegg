@@ -13,7 +13,7 @@ import "github.com/gen2brain/mpeg"
 // - check if mono audio is relevant (mpg.Channels() <- audio channels count)
 // - Forward() Backward() ? or should we move in some other way?
 
-// A list of initialization errors defined by this package for [NewPlayer]().
+// A collection of initialization errors defined by this package for [NewPlayer]().
 // Other mpeg-specific errors are also possible.
 var (
 	ErrNoVideo         = errors.New("mpeg doesn't include any video stream")
@@ -63,7 +63,7 @@ func NewPlayer(mpegVideoReader io.ReadSeeker) (*Player, error) {
 		controller, err = newAudioAdapter(mpg)
 		if err != nil { return nil, err }
 	} else {
-		panic("video-only controller not implemented yet")
+		controller = newVideoOnlyController(mpg)
 	}
 
 	// create mpeg player
