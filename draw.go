@@ -10,7 +10,7 @@ import "github.com/hajimehoshi/ebiten/v2"
 // but black bars won't be explicitly drawn, so whatever was on the background
 // of the viewport will remain visible.
 // 
-// Typical usage:
+// Common usage:
 //    mpegg.Draw(screen, mpegPlayer.CurrentFrame())
 func Draw(viewport *ebiten.Image, frame *ebiten.Image) {
 	// get frame and viewport sizes

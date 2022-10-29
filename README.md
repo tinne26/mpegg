@@ -1,7 +1,7 @@
 # mpegg
 [![Go Reference](https://pkg.go.dev/badge/github.com/tinne26/mpegg.svg)](https://pkg.go.dev/github.com/tinne26/mpegg)
 
-**NOTICE: work in progress, I'll improve it in the next days. only videos with audio work**
+**NOTICE: work in progress, I'll improve it in the next days. Seek and looping may not work yet.**
 
 A simple abstraction layer over [gen2brain/mpeg](https://github.com/gen2brain/mpeg) to make it easier to play videos on [Ebitengine](https://ebitengine.org). It uses MPEG-1, which is an old video format but kinda does the job at the expense of x2-x3 video sizes.
 
