@@ -3,14 +3,16 @@
 
 **NOTICE: work in progress, I'll improve it in the next days. only videos with audio work**
 
-A simple abstraction layer over [gen2brain/mpeg](https://github.com/gen2brain/mpeg) to make it easier to play videos on [Ebitengine](https://ebitengine.org).
+A simple abstraction layer over [gen2brain/mpeg](https://github.com/gen2brain/mpeg) to make it easier to play videos on [Ebitengine](https://ebitengine.org). It uses MPEG-1, which is an old video format but kinda does the job at the expense of x2-x3 video sizes.
 
-First, you need a video in mpeg format. You can convert your own with [ffmpeg](https://ffmpeg.org/), e.g.:
+## Code example
+
+First, you need a video in MPEG-1 format. You can grab one [somewhere](https://github.com/gen2brain/mpeg/blob/main/testdata/test.mpg) or convert your own with [ffmpeg](https://ffmpeg.org/), e.g.:
 ```
 ffmpeg -i my_video.mp4 -c:v mpeg1video -c:a mp2 -f mpeg -q 8 my_video.mpg
 ```
 
-Then you write a simple Ebitengine program to play it:
+Then you write a simple program to play it on Ebitengine:
 ```Golang
 package main
 
