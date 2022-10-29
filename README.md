@@ -7,7 +7,7 @@ A simple abstraction layer over [gen2brain/mpeg](https://github.com/gen2brain/mp
 
 ## Code example
 
-First, you need a video in MPEG-1 format. You can grab one [somewhere](https://github.com/gen2brain/mpeg/blob/main/testdata/test.mpg) or convert your own with [ffmpeg](https://ffmpeg.org/), e.g.:
+First, you need a video in MPEG-1 format. You can grab one [somewhere](https://github.com/gen2brain/mpeg/blob/main/testdata/test.mpg) or convert your own with [ffmpeg](https://ffmpeg.org/):
 ```
 ffmpeg -i my_video.mp4 -c:v mpeg1video -c:a mp2 -f mpeg -q 8 my_video.mpg
 ```
@@ -65,8 +65,8 @@ Here's a small list of useful ffmpeg flags. See the [ffmpeg tips doc](https://gi
 - `-ss 3 -t 10`: convert only a fragment of the video (start at second 3, convert 10 seconds of video).
 - `-q 4`: set the quality level explicitly. Lower is better.
 - `-filter:v fps=VALUE`: set framerate explicitly (better don't go below 24!).
-- `-s 640x480`: change converted video resolution.
-- `-an` instead of `-c:a mp2`: convert keeping only the video, removing the audio.
+- `-s 640x480`: adjust video resolution.
+- `-an` instead of `-c:a mp2`: remove the audio to keep only the video.
 - `ffprobe -i my_video.mpg -hide_banner`: show video info if you have ffprobe.
 
 ## License

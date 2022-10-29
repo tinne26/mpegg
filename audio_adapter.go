@@ -42,6 +42,7 @@ func newAudioAdapter(mpg *mpeg.MPEG) (*audioAdapter, error) {
 	if err != nil { return nil, err }
 	audioPlayer.SetBufferSize(100*time.Millisecond)
 	adapter.audioPlayer = audioPlayer
+	adapter.latestAudioCurrentInstant = time.Now()
 
 	return adapter, nil
 }
