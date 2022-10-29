@@ -14,7 +14,7 @@ import "github.com/gen2brain/mpeg"
 // - Forward() Backward() ? or should we move in some other way?
 
 // A list of initialization errors defined by this package for [NewPlayer]().
-// Other mpeg specific errors are also possible.
+// Other mpeg-specific errors are also possible.
 var (
 	ErrNoVideo         = errors.New("mpeg doesn't include any video stream")
 	ErrMissingHeaders  = errors.New("one or more mpeg streams are missing headers")
@@ -34,18 +34,21 @@ var syncCorrection time.Duration = 0*time.Millisecond
 // make playing video possible on Ebitengine.
 //
 // Usage is quite similar to Ebitengine audio players:
-// - Create a [NewPlayer]().
-// - Call [Player.Play()] to start the video.
-// - Audio will play automatically. Frames are drawn with [Player.DrawFrame]().
-// - Use [Player.Pause]() or [Player.Seek]() to control the video.
+//  - Create a [NewPlayer]().
+//  - Call [Player.Play()] to start the video.
+//  - Audio will play automatically. Frames are obtained with [Player.CurrentFrame]().
+//  - Use [Player.Pause]() or [Player.SeekFast]() to control the video.
 // More methods are available, but that's the main idea.
 //
 // [gen2brain/mpeg]: https://github.com/gen2brain/mpeg
 type Player struct {
 	currentFrame *ebiten.Image
 	controller mpegController
+	onBlackFrame bool
 }
 
+// Creates a new mpeg video [Player]. The read-seeker source is usually
+// a file opened with [os.Open]().
 func NewPlayer(mpegVideoReader io.ReadSeeker) (*Player, error) {
 	mpg, err := mpeg.New(mpegVideoReader)
 	if err != nil { return nil, err }
@@ -72,13 +75,14 @@ func NewPlayer(mpegVideoReader io.ReadSeeker) (*Player, error) {
 	}, nil
 }
 
-// Returns the image corresponding to the underlying mpeg's frame at
-// [Player.Position](). This means that as long as the player is playing, 
-// the contents of the image returned by this method will keep changing,
-// being fetched whenever you call this method.
+// Returns the image corresponding to the underlying mpeg's video frame at
+// the current [Player.Position](). This means that as long as the mpeg is 
+// playing, calling this method at different times will return different
+// frames.
 //
-// The returned image may be reused and overwritten whenever you call
-// CurrentFrame() again.
+// The returned image is reused, so calling this method again is likely to
+// overwrite its contents. This means you can use the image between calls, but
+// you should not store it for later use expecting the image to remain the same.
 func (self *Player) CurrentFrame() *ebiten.Image {
 	// get mpeg and current position
 	mpg, mutex := self.controller.MPEG()
@@ -87,8 +91,12 @@ func (self *Player) CurrentFrame() *ebiten.Image {
 	defer mutex.Unlock()
 	
 	// compute frame duration and stop if we are already within the target
-	frameDuration := 1.0/mpg.Framerate()
 	videoDecoder := mpg.Video()
+	if videoDecoder.HasEnded() {
+		self.copyFrame(nil)
+		return self.currentFrame
+	}
+	frameDuration := 1.0/mpg.Framerate()
 	if videoDecoder.Time() + frameDuration >= refSecPos { return self.currentFrame }
 	
 	// keep decoding until we reach the target
@@ -97,10 +105,12 @@ func (self *Player) CurrentFrame() *ebiten.Image {
 	//       BIGGEST ISSUE IN THE PKG TO TEST AND MOST LIKELY CORRECT.
 	//       in fact, if decoding takes too long, the controller's
 	//       position may keep advancing.
+	// TODO: actually looping is a bigger problem.
 	
 	var frame *mpeg.Frame
 	for videoDecoder.Time() + frameDuration <= refSecPos {
 		frame = videoDecoder.Decode()
+		if videoDecoder.HasEnded() { break }
 	}
 	
 	self.copyFrame(frame)
@@ -156,9 +166,12 @@ func (self *Player) SetVolume(volume float64) {
 
 func (self *Player) copyFrame(frame *mpeg.Frame) {
 	if frame == nil {
+		if self.onBlackFrame { return }
 		self.currentFrame.Fill(color.Black)
+		self.onBlackFrame = true
 	} else {
 		self.currentFrame.WritePixels(frame.RGBA().Pix)
+		self.onBlackFrame = false
 	}
 }
 
@@ -169,13 +182,15 @@ func (self *Player) copyFrame(frame *mpeg.Frame) {
 //
 // If the underlying mpeg contains any audio, the audio will also
 // start or resume. Video frames need to be retrieved manually through
-// [Player.CurrentFrame]().
+// [Player.CurrentFrame]() instead.
 func (self *Player) Play() { self.controller.Play() }
 
-// Returns whether the player's playback clock is active or not.
+// Returns whether the player's clock and audio are running or not.
+// Notice that even when playing, video frames need to be retrieved manually
+// through [Player.CurrentFrame]().
 func (self *Player) IsPlaying() bool { return self.controller.IsPlaying() }
 
-// Pauses the player's internal clock. If the player is already paused, it
+// Pauses the player's playback clock. If the player is already paused, it
 // just stays paused and nothing new happens.
 //
 // If the underlying mpeg contains any audio, the audio will also be paused.
@@ -226,10 +241,10 @@ func (self *Player) Position() time.Duration { return self.controller.Position()
 // Returns the player's underlying mpeg and its associated mutex. The mutex
 // is particularly critical when the mpeg also contains audio, as the Ebitengine
 // audio process may be periodically reading from the mpeg, making concurrent
-// access particularly dangerous.
+// access dangerous.
 //
 // Here's a list of common useful methods on the underlying mpeg:
-// - SetAudioStream(int) to select the audio stream [0 - 4].
-// - SetLoop(bool) to set mpeg looping mode.
-// - Loop() bool to determine if the mpeg is in looping mode.
+//  - SetAudioStream(int) to select the audio stream [0 - 4].
+//  - SetLoop(bool) to set mpeg looping mode.
+//  - Loop() bool to determine if the mpeg is in looping mode.
 func (self *Player) MPEG() (*mpeg.MPEG, *sync.Mutex) { return self.controller.MPEG() }

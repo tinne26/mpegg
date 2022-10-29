@@ -78,6 +78,7 @@ func (self *audioAdapter) Read(buffer []byte) (int, error) {
 	for len(buffer) > 0 {
 		// decode some samples
 		samples := audio.Decode()
+		if samples == nil { return servedBytes, eof(audio.HasEnded()) } // this is weird actually
 		
 		// cast the samples int16 slice to a byte slice
 		ptr := (*byte)(unsafe.Pointer(&samples.S16[0]))
